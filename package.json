@@ -1,0 +1,19 @@
+{
+  "name": "ton-airdrop",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@broxus/contracts": "^1.0.4",
+    "broxus-ton-tokens-contracts": "github:broxus/ton-eth-bridge-token-contracts#e2741a2e537fde3d01ef5bc0f7493d566fcd9151",
+    "chai": "^4.3.4",
+    "chai-bignumber": "^3.0.0",
+    "locklift": "^1.4.5",
+    "mocha-logger": "^1.0.7"
+  }
+}
