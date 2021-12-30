@@ -22,7 +22,7 @@ const stringToBytesArray = (dataString) => {
 };
 
 
-const setupAirdrop = async () => {
+const setupAirdrop = async (_start_timestamp, _claim_period_in_seconds, _claim_periods_amount) => {
     const [keyPair] = await locklift.keys.getKeyPairs();
     const _randomNonce = locklift.utils.getRandomNonce();
 
@@ -78,7 +78,10 @@ const setupAirdrop = async () => {
         contract: Airdrop,
         constructorParams: {
             _token: root.address,
-            _owner: owner.address
+            _owner: owner.address,
+            _start_timestamp,
+            _claim_period_in_seconds,
+            _claim_periods_amount
         },
         initParams: {
             _randomNonce,
@@ -95,4 +98,6 @@ const setupAirdrop = async () => {
 module.exports = {
     setupAirdrop,
     expect,
+    afterRun,
+    sleep,
 };

@@ -10,10 +10,16 @@
   "license": "ISC",
   "dependencies": {
     "@broxus/contracts": "^1.0.4",
+    "bignumber.js": "^9.0.2",
     "broxus-ton-tokens-contracts": "github:broxus/ton-eth-bridge-token-contracts#e2741a2e537fde3d01ef5bc0f7493d566fcd9151",
     "chai": "^4.3.4",
     "chai-bignumber": "^3.0.0",
+    "csv-load-sync": "^2.3.1",
+    "csv-parse": "^5.0.4",
     "locklift": "^1.4.5",
-    "mocha-logger": "^1.0.7"
+    "mocha-logger": "^1.0.7",
+    "ora": "^3.4.0",
+    "prompts": "^2.4.2",
+    "underscore": "^1.13.2"
   }
 }
