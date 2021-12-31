@@ -154,6 +154,8 @@ contract Airdrop is InternalOwner, RandomNonce, CheckPubKey {
     }
 
     function claim() external {
+        tvm.rawReserve(address(this).balance - msg.value, 2);
+
         require(msg.value >= claim_required_value, 30001);
 
         (uint128 amount, uint32 last_claimed_period_id) = getCurrentClaimable(msg.sender);
