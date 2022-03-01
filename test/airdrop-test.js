@@ -1,7 +1,7 @@
 const {
   expect,
   sleep,
-  setupAirdrop
+  setupAirdrop,
 } = require('./utils');
 const logger = require('mocha-logger');
 
@@ -11,6 +11,13 @@ let owner, root, airdrop;
 const start_timestamp = Math.floor(Date.now() / 1000);
 const claim_period_in_seconds = 60;
 const claim_periods_amount = 3;
+
+
+const TOKEN_PATH = 'node_modules/ton-eth-bridge-token-contracts/build';
+
+// Airdrop balance in tokens
+const amount = locklift.utils.convertCrystal(1000, 'nano');
+
 
 describe(`Test Airdrop contract with ${claim_periods_amount} periods, each ${claim_period_in_seconds} seconds`, async function() {
   this.timeout(20000000);
@@ -37,21 +44,45 @@ describe(`Test Airdrop contract with ${claim_periods_amount} periods, each ${cla
   });
 
 
-  it('Fill airdrop contract with tokens', async () => {
-    const details = await airdrop.call({ method: 'getDetails' });
-    const amount = locklift.utils.convertCrystal(1000, 'nano');
-
+  it('Fill airdrop with tokens', async () => {
     await owner.runTarget({
       contract: root,
       method: 'mint',
       params: {
-        tokens: amount,
-        to: details._token_wallet
+        amount: amount,
+        recipient: airdrop.address,
+        deployWalletValue: locklift.utils.convertCrystal(1, 'nano'),
+        remainingGasTo: owner.address,
+        notify: false,
+        payload: ''
       }
     });
 
-    expect(await root.call({ method: 'getTotalSupply' }))
+    expect(await root.call({ method: 'totalSupply' }))
         .to.be.bignumber.equal(amount, 'Wrong total supply');
+  });
+
+  it('Check airdrop token wallet was deployed and received tokens', async () => {
+    const airdropTokenWalletAddress = await root.call({
+      method: 'walletOf',
+      params: {
+        walletOwner: airdrop.address
+      },
+    });
+
+    logger.log(`Airdrop token wallet: ${airdropTokenWalletAddress}`);
+
+    const airdropTokenWallet = await locklift.factory.getContract('TokenWallet', TOKEN_PATH);
+
+    const details = await airdrop.call({ method: 'getDetails' });
+
+    expect(details._token_wallet)
+        .to.be.equal(airdropTokenWalletAddress, 'Wrong airdrop token wallet');
+
+    airdropTokenWallet.setAddress(airdropTokenWalletAddress);
+
+    expect(await airdropTokenWallet.call({ method: 'balance' }))
+        .to.be.bignumber.equal(amount, 'Wrong balance');
   });
 
   it('Setup single address chunk', async () => {
@@ -101,17 +132,15 @@ describe(`Test Airdrop contract with ${claim_periods_amount} periods, each ${cla
 
     it('Check tokens received', async () => {
       const ownerTokenWalletAddress = await root.call({
-        method: 'getWalletAddress',
+        method: 'walletOf',
         params: {
-          wallet_public_key_: 0,
-          owner_address_: owner.address
+          walletOwner: owner.address
         },
       });
 
-      const ownerTokenWallet = await locklift.factory.getContract(
-          'TONTokenWallet',
-          './node_modules/broxus-ton-tokens-contracts/free-ton/build'
-      );
+      const ownerTokenWallet = await locklift.factory.getContract('TokenWallet', TOKEN_PATH);
+
+      logger.log(`Owner token wallet: ${ownerTokenWalletAddress}`);
 
       ownerTokenWallet.setAddress(ownerTokenWalletAddress);
 
@@ -151,17 +180,13 @@ describe(`Test Airdrop contract with ${claim_periods_amount} periods, each ${cla
 
     it('Check tokens balance remains the same', async () => {
       const ownerTokenWalletAddress = await root.call({
-        method: 'getWalletAddress',
+        method: 'walletOf',
         params: {
-          wallet_public_key_: 0,
-          owner_address_: owner.address
+          walletOwner: owner.address
         },
       });
 
-      const ownerTokenWallet = await locklift.factory.getContract(
-          'TONTokenWallet',
-          './node_modules/broxus-ton-tokens-contracts/free-ton/build'
-      );
+      const ownerTokenWallet = await locklift.factory.getContract('TokenWallet', TOKEN_PATH);
 
       ownerTokenWallet.setAddress(ownerTokenWalletAddress);
 
@@ -227,17 +252,13 @@ describe(`Test Airdrop contract with ${claim_periods_amount} periods, each ${cla
 
     it('Check tokens received', async () => {
       const ownerTokenWalletAddress = await root.call({
-        method: 'getWalletAddress',
+        method: 'walletOf',
         params: {
-          wallet_public_key_: 0,
-          owner_address_: owner.address
+          walletOwner: owner.address
         },
       });
 
-      const ownerTokenWallet = await locklift.factory.getContract(
-          'TONTokenWallet',
-          './node_modules/broxus-ton-tokens-contracts/free-ton/build'
-      );
+      const ownerTokenWallet = await locklift.factory.getContract('TokenWallet', TOKEN_PATH);
 
       ownerTokenWallet.setAddress(ownerTokenWalletAddress);
 

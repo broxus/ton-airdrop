@@ -4,14 +4,14 @@ pragma AbiHeader expire;
 pragma AbiHeader pubkey;
 
 
-import './../node_modules/@broxus/contracts/contracts/access/InternalOwner.sol';
-import './../node_modules/@broxus/contracts/contracts/utils/CheckPubKey.sol';
-import './../node_modules/@broxus/contracts/contracts/utils/RandomNonce.sol';
-import "./../node_modules/@broxus/contracts/contracts/libraries/MsgFlag.sol";
+import '@broxus/contracts/contracts/access/InternalOwner.sol';
+import '@broxus/contracts/contracts/utils/CheckPubKey.sol';
+import '@broxus/contracts/contracts/utils/RandomNonce.sol';
+import "@broxus/contracts/contracts/libraries/MsgFlag.sol";
 
 
-import "./../node_modules/broxus-ton-tokens-contracts/free-ton/contracts/interfaces/IRootTokenContract.sol";
-import "./../node_modules/broxus-ton-tokens-contracts/free-ton/contracts/interfaces/ITONTokenWallet.sol";
+import "ton-eth-bridge-token-contracts/contracts/interfaces/ITokenRoot.sol";
+import 'ton-eth-bridge-token-contracts/contracts/interfaces/ITokenWallet.sol';
 
 
 contract Airdrop is InternalOwner, RandomNonce, CheckPubKey {
@@ -37,7 +37,7 @@ contract Airdrop is InternalOwner, RandomNonce, CheckPubKey {
     uint128 transferred_count = 0;
 
     uint128 constant claim_required_value = 2 ton;
-    uint128 constant settings_deploy_wallet_grams = 0.2 ton;
+    uint128 constant settings_deploy_wallet_grams = 0.5 ton;
     uint128 constant settings_transfer_grams = 0.5 ton;
 
     Period[] periods;
@@ -92,20 +92,12 @@ contract Airdrop is InternalOwner, RandomNonce, CheckPubKey {
 
     function setUpTokenWallet() internal view {
         // Deploy token wallet
-        IRootTokenContract(token).deployEmptyWallet{value: 1 ton}(
-            settings_deploy_wallet_grams,
-            0,
-            address(this),
-            address(this)
-        );
-
-        // Request for token wallet address
-        IRootTokenContract(token).getWalletAddress{
+        ITokenRoot(token).deployWallet{
             value: 1 ton,
             callback: Airdrop.receiveTokenWalletAddress
         }(
-            0,
-            address(this)
+            address(this),
+            settings_deploy_wallet_grams
         );
     }
 
@@ -168,15 +160,13 @@ contract Airdrop is InternalOwner, RandomNonce, CheckPubKey {
         TvmCell empty;
 
         // Transfer tokens
-        ITONTokenWallet(token_wallet).transferToRecipient{
+        ITokenWallet(token_wallet).transfer{
             value: 0,
             flag: MsgFlag.ALL_NOT_RESERVED
         }(
-            0,
-            msg.sender,
             amount,
+            msg.sender,
             settings_deploy_wallet_grams,
-            settings_transfer_grams,
             msg.sender,
             false,
             empty

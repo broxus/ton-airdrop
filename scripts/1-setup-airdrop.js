@@ -11,6 +11,7 @@ const ora = require('ora');
 const fs = require('fs');
 const BigNumber = require('bignumber.js');
 const logger = require("mocha-logger");
+const {use} = require("chai");
 
 const isValidTonAddress = (address) => /^(?:-1|0):[0-9a-fA-F]{64}$/.test(address);
 
@@ -56,11 +57,7 @@ const main = async () => {
     ]);
 
     // Read csv
-    const data = load(response.data, {
-        convert: {
-            reward: (r) => new BigNumber(r).multipliedBy(10**9).toFixed(0)
-        }
-    });
+    const data = load(response.data);
     const chunks = _.chunk(data, 50);
 
     // console.log(data[data.length - 1]);
@@ -131,7 +128,7 @@ const main = async () => {
                 _users,
                 _rewards_per_period,
             },
-            value: locklift.utils.convertCrystal(4, 'nano')
+            value: locklift.utils.convertCrystal(2, 'nano')
         });
 
         spinner.stop();

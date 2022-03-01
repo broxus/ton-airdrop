@@ -5,6 +5,9 @@ chai.use(require('chai-bignumber')());
 const { expect } = chai;
 
 
+const TOKEN_PATH = 'node_modules/ton-eth-bridge-token-contracts/build';
+
+
 async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -43,28 +46,28 @@ const setupAirdrop = async (_start_timestamp, _claim_period_in_seconds, _claim_p
     logger.log(`Owner: ${owner.address}`);
 
     // Token
-    const RootToken = await locklift.factory.getContract(
-        'RootTokenContract',
-        './node_modules/broxus-ton-tokens-contracts/free-ton/build'
-    );
-
-    const TokenWallet = await locklift.factory.getContract(
-        'TONTokenWallet',
-        './node_modules/broxus-ton-tokens-contracts/free-ton/build'
-    );
+    const RootToken = await locklift.factory.getContract('TokenRoot', TOKEN_PATH);
+    const TokenWallet = await locklift.factory.getContract('TokenWallet', TOKEN_PATH);
 
     const root = await locklift.giver.deployContract({
         contract: RootToken,
         constructorParams: {
-            root_public_key_: 0,
-            root_owner_address_: owner.address
+            initialSupplyTo: owner.address,
+            initialSupply: 0,
+            deployWalletValue: locklift.utils.convertCrystal('0.1', 'nano'),
+            mintDisabled: false,
+            burnByRootDisabled: true,
+            burnPaused: false,
+            remainingGasTo: locklift.utils.zeroAddress
         },
         initParams: {
-            name: stringToBytesArray('Dollar'),
-            symbol: stringToBytesArray('USD'),
-            decimals: 9,
-            wallet_code: TokenWallet.code,
-            _randomNonce,
+            deployer_: locklift.utils.zeroAddress,
+            randomNonce_: locklift.utils.getRandomNonce(),
+            rootOwner_: owner.address,
+            name_: 'Airdrop token',
+            symbol_: 'AIRDROP',
+            decimals_: 9,
+            walletCode_: TokenWallet.code,
         },
         keyPair,
     });
